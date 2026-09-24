@@ -2,6 +2,7 @@ import os
 import tempfile
 from logsentinel.scanner import LogScanner
 
+# test scanning an empty log file
 def test_empty_file():
     fd, path = tempfile.mkstemp()
     os.close(fd)
@@ -10,10 +11,10 @@ def test_empty_file():
         res = scanner.scan()
         assert res["total_lines"] == 0
         assert res["risk_score"] == 0
-        print("Empty file test passed!")
     finally:
         os.unlink(path)
 
+# test scanning a file with mixed normal, error, and security logs
 def test_malformed_and_mixed_logs():
     fd, path = tempfile.mkstemp()
     os.close(fd)
@@ -32,15 +33,14 @@ def test_malformed_and_mixed_logs():
         assert res["sudo_anomaly_count"] == 1
         assert res["error_count"] == 1
         assert res["risk_score"] == 10
-        print("Malformed and mixed logs test passed!")
     finally:
         os.unlink(path)
 
+# test scanner behavior when the target file does not exist
 def test_nonexistent_file():
     scanner = LogScanner("/nonexistent/path/log.log")
     res = scanner.scan()
     assert "error" in res
-    print("Nonexistent file test passed!")
 
 if __name__ == "__main__":
     test_empty_file()
