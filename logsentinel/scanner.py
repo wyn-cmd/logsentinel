@@ -2,6 +2,8 @@ import re
 import json
 
 class LogScanner:
+    MAX_ANOMALIES = 500
+
     PATTERNS = {
         "failed_password": re.compile(r"failed password|authentication failure|invalid user", re.IGNORECASE),
         "sudo_anomaly": re.compile(r"sudo|su:", re.IGNORECASE),
@@ -39,11 +41,12 @@ class LogScanner:
                         if self.PATTERNS[pattern_key].search(cleaned):
                             results[count_key] += 1
                             results["risk_score"] += score_val
-                            results["anomalies"].append({
-                                "line": line_num,
-                                "type": anomaly_type,
-                                "content": cleaned
-                            })
+                            if len(results["anomalies"]) < self.MAX_ANOMALIES:
+                                results["anomalies"].append({
+                                    "line": line_num,
+                                    "type": anomaly_type,
+                                    "content": cleaned
+                                })
                             
         except OSError as e:
             results["error"] = f"File error: {e}"
