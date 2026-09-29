@@ -46,8 +46,24 @@ def test_nonexistent_file():
     res = scanner.scan()
     assert "error" in res
 
+# test that anomalies list caps at MAX_ANOMALIES
+def test_max_anomalies_limit():
+    fd, path = tempfile.mkstemp()
+    os.close(fd)
+    try:
+        with open(path, 'w', encoding='utf-8') as f:
+            for _ in range(600):
+                f.write("Failed password for root\n")
+        scanner = LogScanner(path)
+        res = scanner.scan()
+        assert len(res["anomalies"]) == scanner.MAX_ANOMALIES
+        assert res["failed_password_count"] == 600
+    finally:
+        os.unlink(path)
+
 if __name__ == "__main__":
     test_empty_file()
     test_malformed_and_mixed_logs()
     test_nonexistent_file()
+    test_max_anomalies_limit()
     print("All logsentinel tests passed.")
